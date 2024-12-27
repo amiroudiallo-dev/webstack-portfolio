@@ -12,7 +12,7 @@ Automate the build, test, and deployment processes using Jenkins, Docker, and Gi
 ### Week 1
 
 - [x] Install and configure Jenkins, Docker, and Git on your environment.
-- [x] Choose or develop a sample application (e.g. a simple web service in Python).
+- [x] Develop a sample application (e.g. a simple web service in Python).
 - [x] Create a GitHub repository for the application.
 
 ### Week 2
