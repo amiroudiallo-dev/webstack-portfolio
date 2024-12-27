@@ -15,11 +15,26 @@ pipeline {
             }
         }
 
+	    stage('Upgrade Pip') {
+	        steps {
+        	    sh './venv/bin/python3 -m pip install --upgrade pip'
+    	   }
+        }
+
         stage('Test Application') {
             steps {
                 sh './venv/bin/python app.py &'
                 sh 'curl http://127.0.0.1:9440/status'
             }
         }
+        stage('Run Application') {
+            steps {
+                sh '''
+                fuser -k 9440/tcp || true
+                ./venv/bin/python app.py
+                '''
+            }
+        }
+
     }
 }
