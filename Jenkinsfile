@@ -23,6 +23,7 @@ pipeline {
 
         stage('Test Application') {
             steps {
+                sh './venv/bin/python3 -m unittest discover -s tests'
                 sh './venv/bin/python app.py &'
                 sh 'curl http://127.0.0.1:9440/status'
             }
