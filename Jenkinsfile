@@ -4,9 +4,10 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'flask-app'
         DOCKER_TAG = 'latest'
+        APP_PORT = '9440'
         PATH = "/usr/local/bin:$PATH"
     }
-    
+
     stages {
         stage('Clone Repository') {
             steps {
@@ -31,7 +32,7 @@ pipeline {
             steps {
                 sh './venv/bin/python3 -m unittest discover -s tests'
                 sh './venv/bin/python app.py &'
-                sh 'curl http://127.0.0.1:9440/status'
+                sh 'curl http://127.0.0.1:$APP_PORT/status'
             }
         }
 
@@ -41,23 +42,45 @@ pipeline {
             }
         }
 
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'amiroudiallodev', passwordVariable: '#Wendpuire.dia45#')]) {
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                    sh 'docker tag $DOCKER_IMAGE:$DOCKER_TAG amiroudiallodev/$DOCKER_IMAGE:$DOCKER_TAG'
+                    sh 'docker push amiroudiallodev/$DOCKER_IMAGE:$DOCKER_TAG'
+                }
+            }
+        }
+
         stage('Run Application in Docker') {
             steps {
                 sh '''
                     docker stop flask-app || true
                     docker rm flask-app || true
-                    docker run -d -p 9440:9440 --name flask-app $DOCKER_IMAGE:$DOCKER_TAG
+                    docker run -d -p $APP_PORT:$APP_PORT --name flask-app $DOCKER_IMAGE:$DOCKER_TAG
                     sleep 5
-                    curl http://127.0.0.1:9440/status
+                    curl http://127.0.0.1:$APP_PORT/status
                 '''
             }
         }
 
-        stage('Clean up Docker') {
+        stage('Clean Docker Resources') {
             steps {
-                sh 'docker stop flask-app || true'
-                sh 'docker rm flask-app || true'
+                sh '''
+                    docker stop flask-app || true
+                    docker rm flask-app || true
+                    docker image prune -f
+                    docker container prune -f
+                '''
             }
+        }
+    }
+
+    post {
+        failure {
+            mail to: 'amiroudiallo.yw@example.com',
+                subject: "Build Failed: ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
+                body: "Check the Jenkins logs for details: ${env.BUILD_URL}"
         }
     }
 }
