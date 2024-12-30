@@ -4,6 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'flask-app'
         DOCKER_TAG = 'latest'
+        PATH = "/usr/local/bin:$PATH"
     }
     
     stages {
