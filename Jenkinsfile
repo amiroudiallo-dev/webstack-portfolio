@@ -7,7 +7,6 @@ pipeline {
         APP_PORT = '9440'
         PATH = "/usr/local/bin:${env.PATH}"
     }
-}
 
     stages {
         stage('Clone Repository') {
