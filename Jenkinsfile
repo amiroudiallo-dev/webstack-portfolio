@@ -5,8 +5,9 @@ pipeline {
         DOCKER_IMAGE = 'flask-app'
         DOCKER_TAG = 'latest'
         APP_PORT = '9440'
-        PATH = "/usr/local/bin:$PATH"
+        PATH = "/usr/local/bin:${env.PATH}"
     }
+}
 
     stages {
         stage('Clone Repository') {
