@@ -39,7 +39,7 @@ pipeline {
                 sh './venv/bin/python3 -m unittest discover -s tests'
                 echo 'Starting the application for status check...'
                 sh './venv/bin/python app.py &'
-                sleep 10
+                sleep 15
                 sh 'curl http://127.0.0.1:$APP_PORT/status'
                 sh 'pkill -f "python app.py" || true'
             }
@@ -55,7 +55,7 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 echo 'Pushing Docker image...'
-                withCredentials([usernamePassword(credentialsId: 'c291fae5-f7d3-4082-aebb-dcc6e6824678', usernameVariable: 'amiroudiallodev', passwordVariable: 'dckr_pat_Q9zRsm6VeKMHPnE0sETZUrG4hYU')]) {
+                withCredentials([usernamePassword(credentialsId: 'c291fae5-f7d3-4082-aebb-dcc6e6824678', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh '''
                         echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
                         docker tag $DOCKER_IMAGE:$DOCKER_TAG $DOCKER_USER/$DOCKER_IMAGE:$DOCKER_TAG
@@ -84,7 +84,7 @@ pipeline {
                 sh '''
                     docker stop flask-app || true
                     docker rm -f flask-app || true
-                    docker system prune -f
+                    docker rmi -f $DOCKER_IMAGE:$DOCKER_TAG || true
                 '''
             }
         }
