@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = 'flask-app'
+        DOCKER_TAG = 'latest'
+    }
+    
     stages {
         stage('Clone Repository') {
             steps {
@@ -15,10 +20,10 @@ pipeline {
             }
         }
 
-	    stage('Upgrade Pip') {
-	        steps {
-        	    sh './venv/bin/python3 -m pip install --upgrade pip'
-    	   }
+        stage('Upgrade Pip') {
+            steps {
+                sh './venv/bin/python3 -m pip install --upgrade pip'
+            }
         }
 
         stage('Test Application') {
@@ -28,14 +33,30 @@ pipeline {
                 sh 'curl http://127.0.0.1:9440/status'
             }
         }
-        stage('Run Application') {
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t $DOCKER_IMAGE:$DOCKER_TAG .'
+            }
+        }
+
+        stage('Run Application in Docker') {
             steps {
                 sh '''
-                fuser -k 9440/tcp || true
-                ./venv/bin/python app.py
+                    docker stop flask-app || true
+                    docker rm flask-app || true
+                    docker run -d -p 9440:9440 --name flask-app $DOCKER_IMAGE:$DOCKER_TAG
+                    sleep 5
+                    curl http://127.0.0.1:9440/status
                 '''
             }
         }
 
+        stage('Clean up Docker') {
+            steps {
+                sh 'docker stop flask-app || true'
+                sh 'docker rm flask-app || true'
+            }
+        }
     }
 }
