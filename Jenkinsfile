@@ -21,7 +21,7 @@ pipeline {
                 echo 'Installing dependencies...'
                 sh '''
                     python3 -m venv venv
-                    ./venv/bin/pip install -r requirements.txt || exit 1
+                    ./venv/bin/pip install -r requirements.txt
                 '''
             }
         }
@@ -40,7 +40,7 @@ pipeline {
                 echo 'Starting the application for status check...'
                 sh './venv/bin/python app.py &'
                 sleep 15
-                sh 'curl --retry 5 --retry-delay 5 http://127.0.0.1:$APP_PORT/status'
+                sh 'curl http://127.0.0.1:$APP_PORT/status'
                 sh 'pkill -f "python app.py" || true'
             }
         }
@@ -53,9 +53,6 @@ pipeline {
         }
 
         stage('Push Docker Image') {
-            agent {
-                none
-            }
             steps {
                 echo 'Pushing Docker image...'
                 withCredentials([usernamePassword(credentialsId: 'c291fae5-f7d3-4082-aebb-dcc6e6824678', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
@@ -72,8 +69,8 @@ pipeline {
             steps {
                 echo 'Running application in Docker...'
                 sh '''
-                    docker stop flask-app || echo "Failed to stop container"
-                    docker rm -f flask-app || echo "Failed to remove container"
+                    docker stop flask-app || true
+                    docker rm -f flask-app || true
                     docker run -d -p $APP_PORT:$APP_PORT --name flask-app $DOCKER_IMAGE:$DOCKER_TAG
                     sleep 5
                     curl http://127.0.0.1:$APP_PORT/status
@@ -85,8 +82,8 @@ pipeline {
             steps {
                 echo 'Cleaning Docker resources...'
                 sh '''
-                    docker stop flask-app || echo "Failed to stop container"
-                    docker rm -f flask-app || echo "Failed to remove container"
+                    docker stop flask-app || true
+                    docker rm -f flask-app || true
                     docker rmi -f $DOCKER_IMAGE:$DOCKER_TAG || true
                 '''
             }
