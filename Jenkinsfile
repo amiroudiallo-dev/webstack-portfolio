@@ -55,7 +55,7 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 echo 'Pushing Docker image...'
-                withCredentials([usernamePassword(credentialsId: 'c291fae5-f7d3-4082-aebb-dcc6e6824678', usernameVariable: 'amiroudiallodev', passwordVariable: 'ffc5e95bf8c74123a9ed51b494f00dce')]) {
+                withCredentials([usernamePassword(credentialsId: 'c291fae5-f7d3-4082-aebb-dcc6e6824678', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh '''
                         echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
                         docker tag $DOCKER_IMAGE:$DOCKER_TAG $DOCKER_USER/$DOCKER_IMAGE:$DOCKER_TAG
@@ -99,11 +99,7 @@ pipeline {
             )
         }
         success {
-            emailext (
-                subject: "Build Successful: ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
-                body: "The build was successful. Details: ${env.BUILD_URL}",
-                to: 'amiroudiallo.yw@gmail.com'
-            )
+            echo 'Pipeline executed successfully!'
         }
     }
 }
